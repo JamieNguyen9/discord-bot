@@ -1,8 +1,7 @@
 import discord
 from discord.ext.commands import Bot
-import os
-import command_helper
-import random
+import os, random
+import command_helper, covid_helper
 
 BOT_PREFIX = '>'
 BOT_TOKEN = os.environ.get('DISCORD_BOT_TOKEN')
@@ -22,6 +21,28 @@ async def on_ready():
 @client.event
 async def on_message(message):
     await client.process_commands(message)
+
+@client.command()
+async def covid(ctx):
+    stats = covid_helper.get_covid_json()
+    us = covid_helper.get_covid_us_json()
+    embed = discord.Embed(
+        title = "Coronavirus Statistics",
+        description = "-----= U.S. Totals =------\nCases: {:,}\nDeaths: {:,}".format(us[0]['positive'], us[0]['death']),
+        colour = discord.Color.red()
+    )
+
+    states = covid_helper.get_states()
+
+    numbered = 1
+    for i in stats:
+        header1 = "{}. {}".format(numbered, states[i['state']])
+        val = "Cases: {:,}\nDeaths: {:,}".format(int(i['positive']), int(i['death']))
+        embed.add_field(name = header1, value = val, inline=True)
+        numbered += 1
+
+    await ctx.send(embed = embed)
+    
 
 # Changes role color if user is in that role.    
 @client.command()
