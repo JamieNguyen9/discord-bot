@@ -39,3 +39,9 @@ def get_rolls(arg):
         rolls.append(random.randint(1, args[-1]))
 
     return rolls
+
+def verify_role(role, roles):
+    for i in roles:
+        if i.name == role:
+            return True
+    return False

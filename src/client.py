@@ -23,9 +23,20 @@ async def on_ready():
 async def on_message(message):
     await client.process_commands(message)
 
+# Changes role color if user is in that role.    
+@client.command()
+async def rolecolor(ctx, role: str, r: int, g: int, b: int):
+    # role is case sensitive
+    if not command_helper.verify_role(role, ctx.message.author.roles):
+        await ctx.send("You are not in {}. Please try again".format(role))
+        return
+
+    guild_role = discord.utils.get(ctx.guild.roles, name = role)
+    await guild_role.edit(colour=discord.Color.from_rgb(r, g, b))
+    await ctx.send("{}: {}'s color has now changed.".format(ctx.message.author.mention, role))
 
 # Send random images of carl wheezer
-@client.command(pass_context=True)
+@client.command()
 async def carl(ctx):
     image = command_helper.get_carl()
     await ctx.send(image) 
