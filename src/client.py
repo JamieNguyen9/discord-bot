@@ -1,7 +1,7 @@
 import discord
 from discord.ext.commands import Bot
 import os
-import carl_images
+import command_helper
 import random
 
 BOT_PREFIX = '>'
@@ -27,37 +27,31 @@ async def on_message(message):
 # Send random images of carl wheezer
 @client.command(pass_context=True)
 async def carl(ctx):
-    image = carl_images.get_carl()
+    image = command_helper.get_carl()
     await ctx.send(image) 
 
 # Perform x amount of y-dice roles in the format of "xdy"
 # where x and y are positive integers
 @client.command()
-async def roll(ctx, arg:str):
-    i = 0
-    j = 0
-    args = []
-    for c in arg:
-        print(c)
-        if c == 'd':
-            args.append(int(arg[i:j]))
-            i = j + 1
-            j = i
-            print(args)
-        else:
-            j += 1
+async def roll(ctx, arg: str):
+    xdy = arg
+    kh = False  # keep highest
 
-    if j == i:
-        await ctx.send("Arg is in the wrong format (needs to be in 'xdy' form). Please try again")
+    if xdy[-2:] == 'kh':
+        kh = True
+        xdy = xdy[:-2]
+
+    rolls = command_helper.get_rolls(xdy)
+    if isinstance(rolls, bool):
+        await ctx.send("Argument is missing or is in the wrong format. Please try again")
         return
-    else:
-        args.append(int(arg[i:j]))
 
-    rolls = []
-    for c2 in range(args[0]):
-        rolls.append(random.randint(1, args[-1]))
+    if kh:
+        max_val = max(rolls)
+        await ctx.send("{}: Your dice rolls are: {}. Highest Value: {}.".format(ctx.message.author.mention, str(rolls), str(max_val)))
+        return
 
-    await ctx.send("Your dice rolls are: " + str(rolls))
+    await ctx.send("{}: Your dice rolls are: {}.".format(ctx.message.author.mention, str(rolls)))
     return
 
 client.run(BOT_TOKEN)
