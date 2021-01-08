@@ -1,5 +1,5 @@
 import random
-
+import urllib.parse, urllib.request, re
 
 carl_links = [
     "https://i1.sndcdn.com/artworks-000650881924-x9k0sw-t500x500.jpg",
@@ -46,3 +46,13 @@ def verify_role(role, roles):
         if i.name == role:
             return True
     return False
+
+def get_link(link):
+    query_str = urllib.parse.urlencode({
+        'search_query': link
+    })
+    content = urllib.request.urlopen(
+        'http://www.youtube.com/results?' + query_str
+    )
+    res = re.findall(r"watch\?v=(\S{11})", content.read().decode())
+    return str('http://www.youtube.com/watch?v=' + res[0])

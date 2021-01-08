@@ -1,6 +1,8 @@
 import discord
 from discord.ext.commands import Bot
-import os, random
+from discord import FFmpegPCMAudio
+from youtube_dl import YoutubeDL
+import os, random, ctypes, ctypes.util
 import command_helper, covid_helper
 
 BOT_PREFIX = '>'
@@ -28,10 +30,9 @@ async def covid(ctx):
     us = covid_helper.get_covid_us_json()
     embed = discord.Embed(
         title = "Coronavirus Statistics",
-        description = "-----= U.S. Totals =------\nCases: {:,}\nDeaths: {:,}".format(us[0]['positive'], us[0]['death']),
+        description = "-----= U.S. Totals =-----\nCases: {:,}\nDeaths: {:,}".format(us[0]['positive'], us[0]['death']),
         colour = discord.Color.red()
     )
-
     states = covid_helper.get_states()
 
     numbered = 1
@@ -42,6 +43,39 @@ async def covid(ctx):
         numbered += 1
 
     await ctx.send(embed = embed)
+    
+
+# Plays a youtube video in voice channel
+@client.command()
+async def play(ctx, *, arg):
+    url = command_helper.get_link(arg)
+    channel = ctx.message.author.voice
+    if not channel:
+        await ctx.send("You are not connected to a voice channel.")
+        return
+    
+    if not client.voice_clients:
+        await channel.channel.connect()
+    YDL_OPTIONS = {'format': 'bestaudio', 'noplaylist':'True'}
+    FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
+    voice = client.voice_clients[0]
+    ctp = ctypes.util.find_library('opus')
+    discord.opus.load_opus(ctp)
+
+    if not voice.is_playing():
+        with YoutubeDL(YDL_OPTIONS) as ydl:
+            info = ydl.extract_info(url, download=False)
+        URL = info['formats'][0]['url']
+        voice.play(FFmpegPCMAudio(URL, executable= r"/mnt/c/PATH/ffmpeg.exe", **FFMPEG_OPTIONS))
+        await ctx.send(url)
+    else:
+        await ctx.send("Already playing song")
+        return
+    
+
+@client.command()
+async def leave(ctx):
+    await ctx.voice_client.disconnect()
     
 
 # Changes role color if user is in that role.    
