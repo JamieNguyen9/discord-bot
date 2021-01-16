@@ -19,11 +19,14 @@ async def on_ready():
     print('')
     print('------')
 
+
 # Process messages sent to chat
 @client.event
 async def on_message(message):
     await client.process_commands(message)
 
+
+# Retrieves real time covid statistics from public api
 @client.command()
 async def covid(ctx):
     stats = covid_helper.get_covid_json()
@@ -90,11 +93,13 @@ async def rolecolor(ctx, role: str, r: int, g: int, b: int):
     await guild_role.edit(colour=discord.Color.from_rgb(r, g, b))
     await ctx.send("{}: {}'s color has now changed.".format(ctx.message.author.mention, role))
 
+
 # Send random images of carl wheezer
 @client.command()
 async def carl(ctx):
     image = command_helper.get_carl()
     await ctx.send(image) 
+
 
 # Perform x amount of y-dice roles in the format of "xdy"
 # where x and y are positive integers
@@ -119,5 +124,6 @@ async def roll(ctx, arg: str):
 
     await ctx.send("{}: Your dice rolls are: {}.".format(ctx.message.author.mention, str(rolls)))
     return
+
 
 client.run(BOT_TOKEN)
