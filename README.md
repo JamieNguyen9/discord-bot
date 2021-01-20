@@ -1,25 +1,33 @@
 # discord-bot
-A simple Python-based Discord bot designed to handle a single Discord server.
+A simple, multipurpose, Python-based Discord bot designed to handle a single Discord server.
 
 ## Features
-* Music player
+* Music Player
 * Dice Roller
-* Carl Wheezer random image generator
-* Role Color changer
-* Real-time COVID Tracking
+* Carl Wheezer Random Image Generator
+* Role Color Changer
+* Real-time COVID Tracker
+* Custom Twitter Tweet Tracker
 
 ## Prerequisites
 The following dependencies are required for hosting your bot:
-* python3.8
-* discord (v1.0.1)
-* discord.py (v1.5.1)
-* youtube_dl (v2021.1.3)
-* requests (v2.18.4)
+* tweepy==3.10.0
+* discord.py==1.5.1
+* youtube_dl==2021.1.3
+* requests==2.18.4
+* discord==1.0.1
+* python_dateutil==2.8.1
 
 ## Setup
 TBD
+
 ## Hosting
-TBD
+There are two ways to host your bot:
+### Locally (Mostly for debugging purposes)
+
+### On the Cloud (Heroku - 24/7)
+Using a cloud service like Heroku will allow you to host your bot for free 24/7. 
+
 ## References
 * [Discord.py Documentation](https://discordpy.readthedocs.io/en/latest/#)
 * [Discord Developer Portal](https://discord.com/developers/)

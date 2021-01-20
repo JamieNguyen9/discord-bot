@@ -1,9 +1,9 @@
-import discord
+import discord, tweepy, asyncio
 from discord.ext.commands import Bot
 from discord import FFmpegPCMAudio
 from youtube_dl import YoutubeDL
 import os, random, ctypes, ctypes.util
-import command_helper, covid_helper
+import command_helper, covid_helper, twitter_listener
 
 BOT_PREFIX = '>'
 BOT_TOKEN = os.environ.get('DISCORD_BOT_TOKEN')
@@ -13,11 +13,18 @@ client = Bot(command_prefix=BOT_PREFIX)
 # Runs when bot starts 
 @client.event
 async def on_ready():
-
+    # Initialization Stage
     print('------')
     print(client.user.name + ' is now online.')
     print('')
-    print('------')
+
+    # Setting up twitter listener
+    twitter_api = twitter_listener.create_api()
+    twitter_stream = tweepy.Stream(
+        auth = twitter_api.auth,
+        listener = twitter_listener.TweetListener(d_msg = send_tweet, loop = asyncio.get_event_loop())
+    )
+    twitter_stream.filter(follow=['978760100977500161'], is_async=True)
 
 
 # Process messages sent to chat
@@ -124,6 +131,23 @@ async def roll(ctx, arg: str):
 
     await ctx.send("{}: Your dice rolls are: {}.".format(ctx.message.author.mention, str(rolls)))
     return
+
+
+# Changes where the bot sends the twitter messages
+@client.command()
+async def twitter_channel(ctx, id):
+    command_helper.change_tw_id(int(id))
+
+
+# Helper method to send real time tweet updates from a twitter account to a specific channel
+async def send_tweet(json_msg):
+    embed = discord.Embed(
+        description = json_msg["text"],
+        colour = discord.Color.blue()
+    )
+    embed.set_author(name = f'{json_msg["user"]["name"]} (@{json_msg["user"]["screen_name"]})', icon_url=json_msg["user"]["profile_image_url_https"])
+    embed.set_footer(text = f'Twitter - {command_helper.convert_date(json_msg["created_at"])}', icon_url = command_helper.twitter_icon)
+    await client.get_channel(command_helper.tweet_channel).send(embed = embed)
 
 
 client.run(BOT_TOKEN)

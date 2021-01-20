@@ -1,4 +1,5 @@
 import random
+from dateutil.parser import parse
 import urllib.parse, urllib.request, re
 
 carl_links = [
@@ -8,6 +9,16 @@ carl_links = [
     "https://66.media.tumblr.com/f5e7ff72672d00b61f6ee864a5c00c18/tumblr_ppeqbhi97d1wynsudo1_400.png",
     "https://media0.giphy.com/media/fZaAP3pmkgPio/giphy.gif"
 ]
+
+tweet_channel = 795796608461176845
+twitter_icon = "https://assets.stickpng.com/images/580b57fcd9996e24bc43c53e.png"
+
+def convert_date(dates):
+    dt = parse(dates)
+    return dt.date()
+
+def change_tw_id(id):
+    tweet_channel = id
 
 def get_carl():
     index = random.randint(0, len(carl_links) - 1)
