@@ -11,12 +11,12 @@ A simple, multipurpose, Python-based Discord bot designed to handle a single Dis
 
 ## Prerequisites
 The following dependencies are required for hosting your bot:
-* tweepy==3.10.0
-* discord.py==1.5.1
-* youtube_dl==2021.1.3
-* requests==2.18.4
-* discord==1.0.1
-* python_dateutil==2.8.1
+* tweepy (v3.10.0)
+* discord.py (v1.5.1)
+* youtube_dl (v2021.1.3)
+* requests (v2.18.4)
+* discord (v1.0.1)
+* python_dateutil (v2.8.1)
 
 ## Setup
 TBD
@@ -31,6 +31,7 @@ Using a cloud service like Heroku will allow you to host your bot for free 24/7.
 ## References
 * [Discord.py Documentation](https://discordpy.readthedocs.io/en/latest/#)
 * [Discord Developer Portal](https://discord.com/developers/)
+* [Tweepy Documentation](https://docs.tweepy.org/en/latest/)
 * [Heroku](https://www.heroku.com/)
 
 ## License
