@@ -2,7 +2,7 @@
 A simple, multipurpose, Python-based Discord bot designed to handle a single Discord server.
 
 ## Features
-* Music Player
+* Youtube Music Player
 * Dice Roller
 * Carl Wheezer Random Image Generator
 * Role Color Changer
