@@ -1,4 +1,4 @@
-# discord-bot
+# scraps-bot
 A simple, multipurpose, Python-based Discord bot designed to handle a single Discord server.
 
 ## Features
