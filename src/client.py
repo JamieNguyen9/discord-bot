@@ -1,5 +1,6 @@
 import discord, tweepy, asyncio
 from discord.ext.commands import Bot
+from discord.utils import get
 from discord import FFmpegPCMAudio
 from youtube_dl import YoutubeDL
 import os, random, ctypes, ctypes.util
@@ -7,8 +8,12 @@ import command_helper, covid_helper, twitter_listener
 
 BOT_PREFIX = '>'
 BOT_TOKEN = os.environ.get('DISCORD_BOT_TOKEN')
+FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
 
 client = Bot(command_prefix=BOT_PREFIX)
+
+song_queue = []
+loop = asyncio.get_event_loop()
 
 # Runs when bot starts 
 @client.event
@@ -22,7 +27,7 @@ async def on_ready():
     twitter_api = twitter_listener.create_api()
     twitter_stream = tweepy.Stream(
         auth = twitter_api.auth,
-        listener = twitter_listener.TweetListener(d_msg = send_tweet, loop = asyncio.get_event_loop())
+        listener = twitter_listener.TweetListener(d_msg = send_tweet, loop = loop)
     )
     twitter_stream.filter(follow=['978760100977500161'], is_async=True)
 
@@ -58,30 +63,40 @@ async def covid(ctx):
 # Plays a youtube video in voice channel
 @client.command()
 async def play(ctx, *, arg):
-    url = command_helper.get_link(arg)
     channel = ctx.message.author.voice
-    if not channel:
+    if channel:
+        # if bot is not connected to voice
+        if not client.voice_clients:
+            await channel.channel.connect()
+        
+        # music set up
+        voice = client.voice_clients[0]
+        ctp = ctypes.util.find_library('opus')
+        discord.opus.load_opus(ctp)
+
+        # add song to queue
+        song = command_helper.get_link(arg)
+        song_queue.append(song)
+
+        if not voice.is_playing():
+            await ctx.send(f"Now Playing: **{song_queue[0]['title']}**")
+            voice.play(FFmpegPCMAudio(song_queue.pop(0)['source'], **FFMPEG_OPTIONS), after = lambda e: play_next(ctx))
+        else:
+            await ctx.send(f"Added to queue: **{song_queue[0]['title']}**")
+    else:
         await ctx.send("You are not connected to a voice channel.")
         return
-    
-    if not client.voice_clients:
-        await channel.channel.connect()
-    YDL_OPTIONS = {'format': 'bestaudio', 'noplaylist':'True'}
-    FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
-    voice = client.voice_clients[0]
-    ctp = ctypes.util.find_library('opus')
-    discord.opus.load_opus(ctp)
 
-    if not voice.is_playing():
-        with YoutubeDL(YDL_OPTIONS) as ydl:
-            info = ydl.extract_info(url, download=False)
-        URL = info['formats'][0]['url']
-        voice.play(FFmpegPCMAudio(URL, executable= r"/mnt/c/PATH/ffmpeg.exe", **FFMPEG_OPTIONS))
-        await ctx.send(url)
-    else:
-        await ctx.send("Already playing song")
-        return
-    
+# Plays the next song after current song has finished playing
+def play_next(ctx):
+    voice = get(client.voice_clients, guild = ctx.guild)
+    if len(song_queue) != 0:
+        future = asyncio.run_coroutine_threadsafe(msg_title(ctx), loop)
+        future.result()
+        voice.play(FFmpegPCMAudio(song_queue.pop(0)['source'], **FFMPEG_OPTIONS), after = lambda e: play_next(ctx))
+
+async def msg_title(ctx):
+    await ctx.send(f"Now Playing: **{song_queue[0]['title']}**")
 
 @client.command()
 async def leave(ctx):

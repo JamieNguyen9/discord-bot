@@ -1,4 +1,5 @@
 import random
+from youtube_dl import YoutubeDL
 from dateutil.parser import parse
 import urllib.parse, urllib.request, re
 
@@ -9,6 +10,8 @@ carl_links = [
     "https://66.media.tumblr.com/f5e7ff72672d00b61f6ee864a5c00c18/tumblr_ppeqbhi97d1wynsudo1_400.png",
     "https://media0.giphy.com/media/fZaAP3pmkgPio/giphy.gif"
 ]
+
+YDL_OPTIONS = {'format': 'bestaudio', 'noplaylist':'True'}
 
 tweet_channel = 795796608461176845
 twitter_icon = "https://assets.stickpng.com/images/580b57fcd9996e24bc43c53e.png"
@@ -66,4 +69,7 @@ def get_link(link):
         'http://www.youtube.com/results?' + query_str
     )
     res = re.findall(r"watch\?v=(\S{11})", content.read().decode())
-    return str('http://www.youtube.com/watch?v=' + res[0])
+    url = str('http://www.youtube.com/watch?v=' + res[0])
+    with YoutubeDL(YDL_OPTIONS) as ydl:
+        info = ydl.extract_info(url, download=False)
+    return { 'source': info['formats'][0]['url'], 'title': info['title'] }
