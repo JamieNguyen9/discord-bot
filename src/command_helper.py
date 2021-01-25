@@ -61,6 +61,7 @@ def verify_role(role, roles):
             return True
     return False
 
+# Converts youtube search into video url
 def get_link(link):
     query_str = urllib.parse.urlencode({
         'search_query': link

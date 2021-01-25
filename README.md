@@ -19,14 +19,16 @@ The following dependencies are required for hosting your bot:
 * python_dateutil (v2.8.1)
 
 ## Setup
-TBD
+### 1. 
 
 ## Hosting
 There are two ways to host your bot:
 ### Locally (Mostly for debugging purposes)
 
+
 ### On the Cloud (Heroku - 24/7)
-Using a cloud service like Heroku will allow you to host your bot for free 24/7. 
+Watch this [video](https://youtu.be/wXn2iIGgHuU) on how to host your bot for free 24/7! 
+Credits to Caleb Coffin for making this video.
 
 ## References
 * [Discord.py Documentation](https://discordpy.readthedocs.io/en/latest/#)
