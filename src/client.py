@@ -192,7 +192,7 @@ async def help(ctx):
         color = ctx.author.color
     )
     embed.add_field(name = "Music Bot Commands", value = "play, leave", inline = False) 
-    embed.add_field(name = "Role Color Command", value = "rolecolor", inline = False)
+    embed.add_field(name = "Role Command", value = "rolecolor", inline = False)
     embed.add_field(name = "Miscellaneous Commands", value = "covid, roll, carl, twitter_channel", inline = False)
     await ctx.send(embed = embed)
 
