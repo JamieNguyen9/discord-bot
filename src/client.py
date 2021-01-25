@@ -230,7 +230,7 @@ async def rolecolor(ctx):
 async def covid(ctx):
     embed = discord.Embed(
         title = "Covid",
-        description = "Retrieves the cases and deaths of the top 15 states in the US.",
+        description = "Retrieves up-to-date coronavirus cases and deaths of the top 15 states in the US.",
         color = ctx.author.color
     )
     embed.add_field(name = "Syntax", value = ">covid")
