@@ -3,14 +3,23 @@ from discord.ext.commands import Bot
 from discord.utils import get
 from discord import FFmpegPCMAudio
 import os, random, ctypes, ctypes.util
-import command_helper, covid_helper, twitter_listener
+import command_helper, covid_helper, twitter_listener, help
+
+'''
+Discord Bot
+Author: Jamie Nguyen
+
+This is the file you run to get your bot up and running online. The heart of the bot. 
+
+'''
+
 
 BOT_PREFIX = '>'
 BOT_TOKEN = os.environ.get('DISCORD_BOT_TOKEN')
 FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
 
-client = Bot(command_prefix=BOT_PREFIX)
-client.remove_command('help')
+client = Bot(command_prefix=BOT_PREFIX, help_command = None)
+client.add_cog(help.Help(client))
 
 song_queue = []
 loop = asyncio.get_event_loop()
@@ -52,13 +61,32 @@ async def covid(ctx):
 
     numbered = 1
     for i in stats:
-        header1 = "{}. {}".format(numbered, states[i['state']])
+        header1 = "**{}. {}**".format(numbered, states[i['state']])
         val = "Cases: {:,}\nDeaths: {:,}".format(int(i['positive']), int(i['death']))
         embed.add_field(name = header1, value = val, inline=True)
         numbered += 1
 
     await ctx.send(embed = embed)
     
+
+# Shows a list of songs next in queue
+@client.command()
+async def queue(ctx):
+    embed = discord.Embed(
+        title = 'Next song(s):',
+        colour = discord.Color.red()
+    )
+
+    if len(song_queue) == 0:
+        embed.add_field(name = 'None queued.', value = 'Feel free to add a song to the queue!')
+        await ctx.send(embed = embed)
+    else:
+        numbered = 1
+        for song in song_queue:
+            embed.add_field(name = f"{str(numbered)}. **{song['title']}**", value = "\u200b", inline = False)
+            numbered += 1
+        await ctx.send(embed = embed)
+
 
 # Plays a youtube video in voice channel
 @client.command()
@@ -70,7 +98,7 @@ async def play(ctx, *, arg):
             await channel.channel.connect()
         
         # music set up
-        voice = client.voice_clients[0]
+        voice = get(client.voice_clients, guild = ctx.guild)
         ctp = ctypes.util.find_library('opus')
         discord.opus.load_opus(ctp)
 
@@ -87,7 +115,7 @@ async def play(ctx, *, arg):
             voice.play(FFmpegPCMAudio(song_queue.pop(0)['source'], **FFMPEG_OPTIONS), after = lambda e: play_next(ctx))
         else:
             embed = discord.Embed(
-                description = f"Added to queue: **{song_queue[0]['title']}** [{ctx.message.author.mention}]",
+                description = f"Added to queue: **{song['title']}** [{ctx.message.author.mention}]",
                 color = discord.Color.red()
             )
             await ctx.send(embed = embed)
@@ -102,10 +130,13 @@ def play_next(ctx):
     if len(song_queue) != 0:
         future = asyncio.run_coroutine_threadsafe(msg_title(ctx), loop)
         future.result()
+        future.cancel()
         voice.play(FFmpegPCMAudio(song_queue.pop(0)['source'], **FFMPEG_OPTIONS), after = lambda e: play_next(ctx))
     else:
         future = asyncio.run_coroutine_threadsafe(leave(ctx), loop)
         future.result()
+        future.cancel()
+
 
 # Helper function for play_next()
 async def msg_title(ctx):
@@ -119,8 +150,20 @@ async def msg_title(ctx):
 # Disconnects from voice channel
 @client.command()
 async def leave(ctx):
+    song_queue.clear()
     await ctx.voice_client.disconnect()
     
+
+@client.command()
+async def skip(ctx):
+    if not client.voice_clients:
+        await ctx.send("The bot is not playing any music! Use `>play <song name>` to play music.")
+    elif len(song_queue) == 0:
+        await ctx.send("No songs left after this song. Use `>play <song name>` to add to the queue!")
+    else:
+        voice = get(client.voice_clients, guild = ctx.guild)
+        voice.stop()
+        
 
 # Changes role color if user is in that role.    
 @client.command()
@@ -183,88 +226,5 @@ async def send_tweet(json_msg):
     embed.set_footer(text = f'Twitter - {command_helper.convert_date(json_msg["created_at"])}', icon_url = command_helper.twitter_icon)
     await client.get_channel(command_helper.tweet_channel).send(embed = embed)
 
-
-@client.group(invoke_without_command=True)
-async def help(ctx):
-    embed = discord.Embed(
-        title = "Help",
-        description = "Use the >help <command> for more information on that command",
-        color = ctx.author.color
-    )
-    embed.add_field(name = "Music Bot Commands", value = "play, leave", inline = False) 
-    embed.add_field(name = "Role Command", value = "rolecolor", inline = False)
-    embed.add_field(name = "Miscellaneous Commands", value = "covid, roll, carl, twitter_channel", inline = False)
-    await ctx.send(embed = embed)
-
-@help.command()
-async def play(ctx):
-    embed = discord.Embed(
-        title = "Play",
-        description = "Plays music from Youtube. If the music is currently playing, it adds the queried song to the queue.",
-        color = ctx.author.color
-    )
-    embed.add_field(name = "Syntax", value = ">play <song name>")
-    await ctx.send(embed = embed)
-
-@help.command()
-async def leave(ctx):
-    embed = discord.Embed(
-        title = "Leave",
-        description = "Leaves the voice channel.",
-        color = ctx.author.color
-    )
-    embed.add_field(name = "Syntax", value = ">leave")
-    await ctx.send(embed = embed)
-
-@help.command()
-async def rolecolor(ctx):
-    embed = discord.Embed(
-        title = "Role Color",
-        description = "Changes the color (RGB value) of the role the user specifies if the user is in that role.",
-        color = ctx.author.color
-    )
-    embed.add_field(name = "Syntax", value = ">rolecolor <role name> <R> <G> <B>")
-    await ctx.send(embed = embed)
-
-@help.command()
-async def covid(ctx):
-    embed = discord.Embed(
-        title = "Covid",
-        description = "Retrieves up-to-date coronavirus cases and deaths of the top 15 states in the US.",
-        color = ctx.author.color
-    )
-    embed.add_field(name = "Syntax", value = ">covid")
-    await ctx.send(embed = embed)
-
-@help.command()
-async def roll(ctx):
-    embed = discord.Embed(
-        title = "Roll",
-        description = "Rolls an x amount of n-sided dice.",
-        color = ctx.author.color
-    )
-    embed.add_field(name = "Syntax", value = ">roll <'xdn'>[Optional: add 'kh' to retrieve the highest roll from the rolls]")
-    embed.add_field(name = "Variables", value = "x = number of rolls\nn = number of sides of the dice", inline = False)
-    await ctx.send(embed = embed)
-
-@help.command()
-async def carl(ctx):
-    embed = discord.Embed(
-        title = "Carl",
-        description = "Sends a random picture of carl wheezer",
-        color = ctx.author.color
-    )
-    embed.add_field(name = "Syntax", value = ">carl")
-    await ctx.send(embed = embed)
-
-@help.command()
-async def twitter_channel(ctx):
-    embed = discord.Embed(
-        title = "Twitter_channel",
-        description = "Changes the channel that twitter updates get sent to.",
-        color = ctx.author.color
-    )
-    embed.add_field(name = "Syntax", value = ">twitter_channel <channel_id>")
-    await ctx.send(embed = embed)
 
 client.run(BOT_TOKEN)

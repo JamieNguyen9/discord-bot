@@ -3,6 +3,14 @@ from youtube_dl import YoutubeDL
 from dateutil.parser import parse
 import urllib.parse, urllib.request, re
 
+'''
+Commands Helper
+Author: Jamie Nguyen
+
+Helper functions for the bot commands.
+
+'''
+
 carl_links = [
     "https://i1.sndcdn.com/artworks-000650881924-x9k0sw-t500x500.jpg",
     "https://media1.tenor.com/images/0810e079c392ba3d483ba81f4edeef97/tenor.gif?itemid=17987376",

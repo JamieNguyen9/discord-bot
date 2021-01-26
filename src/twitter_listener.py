@@ -2,6 +2,14 @@ import tweepy, asyncio
 # import time
 import os
 
+'''
+Twitter Listener
+Author: Jamie Nguyen
+
+Twitter API to listen for real-time tweets from my twitter account.
+
+'''
+
 def create_api():
     consumer_key = os.environ.get('TW_CONSUMER_KEY')
     consumer_secret = os.environ.get('TW_CONSUMER_SECRET')
